@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>إبلاغ عن هاتف مسروق</title>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-xl animate-fadeIn">
+    <h2 class="text-2xl font-bold text-center mb-6 text-blue-800">إبلاغ عن هاتف مسروق</h2>
+    <form id="report-form" class="space-y-4">
+      <input type="text" id="device" placeholder="اسم الهاتف" required class="w-full p-2 border rounded" />
+      <input type="text" id="imei" placeholder="IMEI / الرقم التسلسلي" required class="w-full p-2 border rounded" />
+      <input type="text" id="location" placeholder="مكان السرقة (مثلاً: القاهرة - وسط البلد)" required class="w-full p-2 border rounded" />
+      <textarea id="notes" placeholder="ملاحظات إضافية (اختياري)" class="w-full p-2 border rounded"></textarea>
+      <input type="file" id="image" accept="image/*" class="w-full" />
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition duration-300">
+        إرسال البلاغ
+      </button>
+    </form>
+    <p id="status" class="text-center text-green-600 mt-4 hidden">تم إرسال البلاغ بنجاح ✅</p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getStorage,
+      ref,
+      uploadBytes,
+      getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+    // إعداد Firebase
+    const firebaseConfig = {
+  apiKey: "AIzaSyBoPJbx5v6EkOqxOJkbhzHqIJdAByh79Rg",
+  authDomain: "hhhhhh-d4fb8.firebaseapp.com",
+  projectId: "hhhhhh-d4fb8",
+  storageBucket: "hhhhhh-d4fb8.appspot.com",
+  messagingSenderId: "24512338206",
+  appId: "1:24512338206:web:dfe045db59bd3434a2110f",
+  measurementId: "G-HD4R7GNQ5H"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    const form = document.getElementById("report-form");
+    const statusMsg = document.getElementById("status");
+
+    let currentUser = null;
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const device = document.getElementById("device").value;
+      const imei = document.getElementById("imei").value;
+      const location = document.getElementById("location").value;
+      const notes = document.getElementById("notes").value;
+      const imageFile = document.getElementById("image").files[0];
+
+      let imageUrl = "";
+
+      if (imageFile) {
+        const storageRef = ref(storage, `phones/${Date.now()}_${imageFile.name}`);
+        const snapshot = await uploadBytes(storageRef, imageFile);
+        imageUrl = await getDownloadURL(snapshot.ref);
+      }
+
+      await addDoc(collection(db, "reports"), {
+        uid: currentUser.uid,
+        name: currentUser.displayName,
+        email: currentUser.email,
+        device,
+        imei,
+        location,
+        notes,
+        imageUrl,
+        createdAt: serverTimestamp()
+      });
+
+      form.reset();
+      statusMsg.classList.remove("hidden");
+    });
+  </script>
+</body>
+</html>
