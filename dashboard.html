@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>لوحة التحكم</title>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #1e3a8a, #3b82f6);
+      font-family: 'Tajawal', sans-serif;
+      animation: fadeIn 1s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center text-white">
+  <div class="bg-white rounded-3xl p-8 shadow-2xl w-full max-w-lg text-center text-black animate-fadeIn">
+    <div id="user-info" class="mb-6">
+      <img id="user-pic" class="mx-auto w-24 h-24 rounded-full shadow-lg mb-4" src="" alt="الصورة الشخصية">
+      <h2 id="user-name" class="text-2xl font-bold">جار التحميل...</h2>
+      <p id="user-email" class="text-gray-600 mt-1"></p>
+    </div>
+
+    <div class="space-y-3 mt-8">
+      <a href="report.html" class="block w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-full transition duration-300">إبلاغ عن هاتف مسروق</a>
+      <a href="my-reports.html" class="block w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full transition duration-300">بلاغاتي</a>
+      <button id="logout-btn" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-full transition duration-300">تسجيل الخروج</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    // إعداد Firebase
+    const firebaseConfig = {
+  apiKey: "AIzaSyBoPJbx5v6EkOqxOJkbhzHqIJdAByh79Rg",
+  authDomain: "hhhhhh-d4fb8.firebaseapp.com",
+  projectId: "hhhhhh-d4fb8",
+  storageBucket: "hhhhhh-d4fb8.appspot.com",
+  messagingSenderId: "24512338206",
+  appId: "1:24512338206:web:dfe045db59bd3434a2110f",
+  measurementId: "G-HD4R7GNQ5H"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const userName = document.getElementById("user-name");
+    const userEmail = document.getElementById("user-email");
+    const userPic = document.getElementById("user-pic");
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        userName.textContent = user.displayName || "بدون اسم";
+        userEmail.textContent = user.email;
+        userPic.src = user.photoURL || "https://via.placeholder.com/100";
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    });
+  </script>
+</body>
+</html>
