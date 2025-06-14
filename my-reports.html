@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بلاغاتي</title>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen p-4">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold text-center mb-6 text-blue-700">بلاغاتي</h1>
+    <div id="reports" class="space-y-4"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyBoPJbx5v6EkOqxOJkbhzHqIJdAByh79Rg",
+  authDomain: "hhhhhh-d4fb8.firebaseapp.com",
+  projectId: "hhhhhh-d4fb8",
+  storageBucket: "hhhhhh-d4fb8.appspot.com",
+  messagingSenderId: "24512338206",
+  appId: "1:24512338206:web:dfe045db59bd3434a2110f",
+  measurementId: "G-HD4R7GNQ5H"
+};
+    
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const reportsDiv = document.getElementById("reports");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return location.href = "login.html";
+
+      const q = query(collection(db, "reports"), where("uid", "==", user.uid), orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        reportsDiv.innerHTML = "<p class='text-center text-gray-500'>لا توجد بلاغات بعد.</p>";
+      } else {
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          reportsDiv.innerHTML += `
+            <div class="bg-white shadow rounded-xl p-4 border text-right">
+              <h3 class="font-bold text-lg text-blue-700">${data.device}</h3>
+              <p class="text-sm text-gray-600">IMEI: ${data.imei}</p>
+              <p class="text-sm">المكان: ${data.location}</p>
+              <p class="text-sm">ملاحظات: ${data.notes || "لا توجد"}</p>
+              ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-28 mt-2 rounded">` : ""}
+              <p class="text-xs text-gray-400 mt-2">${data.createdAt?.toDate().toLocaleString() || ""}</p>
+            </div>
+          `;
+        });
+      }
+    });
+  </script>
+</body>
+</html>
